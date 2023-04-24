@@ -1,0 +1,11 @@
+digraph list{
+	rankdir=LR;
+spline = ortho;
+	node0x561d727d7460[shape=Mrecord, style="filled", fillcolor="darkolivegreen2", color=seagreen,label="<f0>node0x561d727d7460|data (null)|{<f2>prev node0x561d727d7460 | <f1>next node0x561d727d7460}"]
+	node0x561d727d7460 -> node0x561d727d7460 [style="invis", weight=1000,constraint=true]
+	node0x561d727d7460:<f1>:s->node0x561d727d7460:<f2>:s[dir=both,weight = 1, constraint=true,style="dashed"]
+
+HEAD[style="filled",fillcolor="skyblue",label="HEAD = node0x561d727d7460"]	HEAD->node0x561d727d7460:<f0>{rank = same; node0x561d727d7460; HEAD;}
+
+TAIL[style="filled",fillcolor="skyblue",label="TAIL = node0x561d727d7460"]	TAIL->node0x561d727d7460:<f0>{rank = same; node0x561d727d7460; TAIL;}; 
+}

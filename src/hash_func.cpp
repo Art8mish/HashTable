@@ -99,3 +99,10 @@ ull hash_mrot(const char *word)
 
     return hash;
 }
+
+ull hash_130k(const char *word)
+{
+    ERR_CHCK(word == NULL, ERR_CALC_HASH);
+
+
+}

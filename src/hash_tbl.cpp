@@ -11,6 +11,8 @@ HshTbl *tblCtor(unsigned tbl_size)
     hsh_tbl->lst_arr = (List **) calloc(tbl_size, sizeof(List *));
     ERR_CHCK(hsh_tbl->lst_arr == NULL, NULL);
 
+    hsh_tbl->data = NULL;
+
     for (unsigned i = 0; i < tbl_size; i++)
     {
         hsh_tbl->lst_arr[i] = listCtor();
@@ -34,6 +36,15 @@ int tblDtor(HshTbl *hsh_tbl)
             ERR_CHCK(err, ERROR_LIST_DTOR);
         }
     }
+
+    if (hsh_tbl->data != NULL)
+    {
+        int err = ClnData(hsh_tbl->data);
+        ERR_CHCK(err, ERR_DATA_CLEAN);
+    }
+
+    if (hsh_tbl->lst_arr != NULL)
+        free(hsh_tbl->lst_arr);
 
     free(hsh_tbl);
 
@@ -77,6 +88,8 @@ int tblHashSort(HshTbl *hsh_tbl, const char *file_path, ull (*hash_func)(const c
     Data *data = GetData(file_path);
     ERR_CHCK(data == NULL, ERR_CREATE_ONG_FIELD);
 
+    hsh_tbl->data = data;
+
     for (unsigned wrd_i = 0; wrd_i < data->wrd_amnt; wrd_i++)
     {
         unsigned hash = hash_func(data->wrd_buf[wrd_i]);
@@ -103,6 +116,36 @@ int tblHashSort(HshTbl *hsh_tbl, const char *file_path, ull (*hash_func)(const c
 }
 
 
+int WrdInTbl(HshTbl *hsh_tbl, const char *word)
+{
+    ERR_CHCK(hsh_tbl == NULL, -1);
+    ERR_CHCK(word    == NULL, -1);
+
+    int wrd_flg = 0;
+
+    unsigned hash = hsh_tbl->hsh_fnc(word) % hsh_tbl->size;
+
+    List *lst = hsh_tbl->lst_arr[hash];
+    ERR_CHCK(lst            == NULL, -1);
+    ERR_CHCK(lst->fict_node == NULL, -1);
+
+    Node * cur_nod = lst->fict_node->next;
+    Node *temp_nod = NULL;
+
+    for (int i = 0; i < lst->size; i++)
+    {
+        if (strcmp(word, cur_nod->value) == 0)
+        {
+            wrd_flg = 1;
+            break;
+        }
+
+        cur_nod = cur_nod->next;
+    }
+
+    return wrd_flg;
+}
+
 
 int tblAdd(HshTbl *hsh_tbl, unsigned index, const char *str)
 {
@@ -116,15 +159,18 @@ int tblAdd(HshTbl *hsh_tbl, unsigned index, const char *str)
     return SUCCESS;
 }
 
-int tblClean(HshTbl *hsh_tbl)
+int tblClean(HshTbl **hsh_tbl)
 {
-    ERR_CHCK(hsh_tbl == NULL, ERROR_NULL_PTR);
+    ERR_CHCK( hsh_tbl == NULL, ERROR_NULL_PTR);
+    ERR_CHCK(*hsh_tbl == NULL, ERROR_NULL_PTR);
 
-    for (unsigned i = 0; i < hsh_tbl->size; i++)
-    {
-        int err = listClean(hsh_tbl->lst_arr[i]);
-        ERR_CHCK(err, ERROR_LIST_CLEAN);
-    }
+    unsigned size = (*hsh_tbl)->size;
+
+    int err = tblDtor(*hsh_tbl);
+    ERR_CHCK(err, ERROR_LIST_DTOR);
+
+    *hsh_tbl = tblCtor(size);
+    ERR_CHCK(*hsh_tbl == NULL, ERR_TBL_CTOR);
 
     return SUCCESS;
 }

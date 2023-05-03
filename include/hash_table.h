@@ -65,6 +65,10 @@ enum Errors
     ERR_HASH_TBL_SORT     = 12,
     ERR_EXCEL_DUMP        = 13,
     ERR_HASH_TBL_CLEAN    = 14,
+    ERR_DATA_CLEAN        = 15,
+    ERR_TBL_CTOR          = 16,
+    ERR_NO_LIST           = 17,
+    ERR_NULL_FICT_NODE    = 18,
 };
 
 enum HashFuncNums
@@ -82,20 +86,21 @@ enum HashFuncNums
 typedef unsigned long ul;
 typedef unsigned long long ull;
 
-typedef struct HashTable
-{
-    List **lst_arr = NULL;
-    unsigned size = 0;
-    ull (*hsh_fnc)(const char *) = NULL;
-
-} HshTbl;
-
 typedef struct Data
 {
           char *char_buf = NULL;
     const char **wrd_buf = NULL;
     unsigned wrd_amnt = 0;
 } Data;
+
+typedef struct HashTable
+{
+    Data *data = NULL;
+    List **lst_arr = NULL;
+    unsigned size = 0;
+    ull (*hsh_fnc)(const char *) = NULL;
+
+} HshTbl;
 
 
 
@@ -112,7 +117,7 @@ int tblCsvDump(HshTbl *hsh_tbl, const char *hash_f_name);
 
 int tblHashSort(HshTbl *hsh_tbl, const char *file_path, ull (*hash_func)(const char *));
 int tblAdd     (HshTbl *hsh_tbl, unsigned index, const char *str);
-int tblClean   (HshTbl *hsh_tbl);
+int tblClean   (HshTbl **hsh_tbl);
 
 ull hash_cnst  (const char *word);
 ull hash_symb  (const char *word);
@@ -122,5 +127,6 @@ ull hash_rol   (const char *word);
 ull hash_ror   (const char *word);
 ull hash_mrot  (const char *word);
 
+int WrdInTbl(HshTbl *hsh_tbl, const char *word);
 
 #endif //HASHTBL_H_INCLUDED

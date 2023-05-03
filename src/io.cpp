@@ -61,7 +61,6 @@ int ReadFileData(const char *file_path, char *char_buf, unsigned char_amnt, cons
 
         if (!is_word && !empt_wrd)
         {
-
             *char_buf = '\0';
 
             words_count++;
@@ -84,6 +83,8 @@ unsigned CalcFileSize(const char *file_path)
 
     fseek(file, 0, SEEK_END);
     unsigned size = ftell(file);
+
+    fclose(file);
 
     return size;
 }

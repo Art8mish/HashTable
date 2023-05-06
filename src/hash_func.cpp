@@ -1,37 +1,37 @@
 
 #include "../include/hash_table.h"
 
-ull hash_cnst(const char *word)
+uint64_t hash_cnst(const char *word)
 {
     ERR_CHCK(word == NULL, ERR_CALC_HASH);
 
     return 1;
 }
 
-ull hash_symb(const char *word)
+uint64_t hash_symb(const char *word)
 {
     ERR_CHCK(word == NULL, ERR_CALC_HASH);
 
-    ull hash = *word;
+    uint64_t hash = *word;
 
     return hash;
 }
 
-ull hash_strlen(const char *word)
+uint64_t hash_strlen(const char *word)
 {
     ERR_CHCK(word == NULL, ERR_CALC_HASH);
 
-    ull hash = strlen(word);
+    uint64_t hash = strlen(word);
 
     return hash;
 }
 
 
-ull hash_ascii(const char *word)
+uint64_t hash_ascii(const char *word)
 {
     ERR_CHCK(word == NULL, ERR_CALC_HASH);
 
-    ull hash = 0;
+    uint64_t hash = 0;
     while (*word != '\0')
     {
         hash += *word;
@@ -42,25 +42,25 @@ ull hash_ascii(const char *word)
 }
 
 
-static ull rol1(ull num)
+static uint64_t rol1(uint64_t num)
 {
-    ull bit = num >> (sizeof(num) * 8 - 1);
+    uint64_t bit = num >> (sizeof(num) * 8 - 1);
 
     return (num << 1) | bit;
 }
 
-static ull ror1(ull num)
+static uint64_t ror1(uint64_t num)
 {
-    ull bit = num << (sizeof(num) * 8 - 1);
+    uint64_t bit = num << (sizeof(num) * 8 - 1);
 
     return (num >> 1) | bit;
 }
 
-ull hash_rol(const char *word)
+uint64_t hash_rol(const char *word)
 {
     ERR_CHCK(word == NULL, ERR_CALC_HASH);
 
-    ull hash = 0;
+    uint64_t hash = 0;
     while (*word != '\0')
     {
         hash = rol1(hash) ^ (*word);
@@ -70,11 +70,11 @@ ull hash_rol(const char *word)
     return hash;
 }
 
-ull hash_ror(const char *word)
+uint64_t hash_ror(const char *word)
 {
     ERR_CHCK(word == NULL, ERR_CALC_HASH);
 
-    ull hash = 0;
+    uint64_t hash = 0;
     while (*word != '\0')
     {
         hash = ror1(hash) ^ (*word);
@@ -85,11 +85,11 @@ ull hash_ror(const char *word)
 }
  
 static int HSH_CNST = 33;
-ull hash_addmul(const char *word)
+uint64_t hash_addmul(const char *word)
 {
     ERR_CHCK(word == NULL, ERR_CALC_HASH);
 
-    ull hash = HSH_CNST;
+    uint64_t hash = HSH_CNST;
     while (*word != '\0')
     {
         hash += *word;

@@ -15,16 +15,18 @@ PREF_OBJ = ./obj/
 
 SRC_TBL = $(wildcard $(PREF_TBL_SRC)*.cpp)
 SRC_LST = $(wildcard $(PREF_LST_SRC)*.cpp)
+SRC_ASM = $(wildcard $(PREF_TBL_SRC)*.asm)
 
 OBJ_TBL = $(patsubst $(PREF_TBL_SRC)%.cpp, $(PREF_OBJ)%.o, $(SRC_TBL))
 OBJ_LST = $(patsubst $(PREF_LST_SRC)%.cpp, $(PREF_OBJ)%.o, $(SRC_LST))
+OBJ_ASM = $(patsubst $(PREF_TBL_SRC)%.asm, $(PREF_OBJ)%.o, $(SRC_ASM))
 
-OBJ = $(OBJ_TBL) $(OBJ_LST)
+OBJ = $(OBJ_TBL) $(OBJ_LST) $(OBJ_ASM) 
 
-all : $(TARGET).exe
+all : $(TARGET)
 
-$(TARGET).exe : $(OBJ)
-	$(CC) $(CFLAGS) $(OBJ) -o $(TARGET).exe
+$(TARGET) : $(OBJ)
+	$(CC) $(CFLAGS) -o $(TARGET) $(OBJ)
 
 $(PREF_OBJ)%.o : $(PREF_TBL_SRC)%.cpp
 	$(CC) $(CFLAGS) -c $< -o $@
@@ -32,5 +34,8 @@ $(PREF_OBJ)%.o : $(PREF_TBL_SRC)%.cpp
 $(PREF_OBJ)%.o : $(PREF_LST_SRC)%.cpp
 	$(CC) $(CFLAGS) -c $< -o $@
 
+$(PREF_OBJ)%.o : $(PREF_TBL_SRC)%.asm
+	nasm -f elf64 -F dwarf -o $@ $<
+
 clean :
-	rm $(TARGET).exe $(PREF_OBJ)*.o ./logs/graphs/*.png logs/log.txt
+	rm $(TARGET).exe $(PREF_OBJ)*.o

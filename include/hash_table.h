@@ -3,14 +3,16 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
 
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#include <unistd.h>
-
-#include <sstream>
 #include <iostream>
+#include <cctype>
+
+#include <unistd.h>
 
 #include <immintrin.h>
 
@@ -88,17 +90,17 @@ typedef unsigned long long ull;
 
 typedef struct Data
 {
-          char *char_buf = NULL;
-    const char **wrd_buf = NULL;
-    unsigned wrd_amnt = 0;
+          char *char_buf;
+    const char **wrd_buf;
+    unsigned wrd_amnt;
 } Data;
 
 typedef struct HashTable
 {
-    Data *data = NULL;
-    List **lst_arr = NULL;
-    unsigned size = 0;
-    ull (*hsh_fnc)(const char *) = NULL;
+    Data *data;
+    List **lst_arr;
+    unsigned size;
+    ull (*hsh_fnc)(const char *);
 
 } HshTbl;
 
@@ -126,6 +128,9 @@ ull hash_ascii (const char *word);
 ull hash_rol   (const char *word);
 ull hash_ror   (const char *word);
 ull hash_mrot  (const char *word);
+
+extern ull _asm_hash_addmul(const char *word);
+int inline asm_strcmp(const char* str1, const char* str2);
 
 int WrdInTbl(HshTbl *hsh_tbl, const char *word);
 

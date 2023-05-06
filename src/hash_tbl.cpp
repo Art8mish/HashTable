@@ -58,7 +58,7 @@ static int ChckWrdExst(List *lst, const char *word, bool *flag)
     ERR_CHCK(word == NULL, ERROR_NULL_PTR);
 
     bool wrd_exst = false;
-    LstNode *crr_nod = lst->fict_node->next;
+    Node *crr_nod = lst->fict_node->next;
     for (unsigned data_i = 0; data_i < lst->size; data_i++)
     {
         if (strcmp(word, crr_nod->value) == 0)
@@ -90,14 +90,18 @@ int tblHashSort(HshTbl *hsh_tbl, const char *file_path, ull (*hash_func)(const c
 
     hsh_tbl->data = data;
 
+    FILE *log_f = fopen("logs/hash_info.txt", "a");
+    ERR_CHCK(log_f == NULL, ERR_FILE_OPENING);
+
+
     for (unsigned wrd_i = 0; wrd_i < data->wrd_amnt; wrd_i++)
     {
-        unsigned hash = hash_func(data->wrd_buf[wrd_i]);
+        unsigned int hash = hash_func(data->wrd_buf[wrd_i]);
+        //fprintf(log_f, "%s = %u; ", data->wrd_buf[wrd_i], hash);
 
         if (hash == ERR_CALC_HASH)
             printf("err_word: %s\n", data->wrd_buf[wrd_i]);
         ERR_CHCK(hash == ERR_CALC_HASH, ERR_HASH_FUNC);
-
 
         hash = hash % hsh_tbl->size;
 
@@ -112,6 +116,8 @@ int tblHashSort(HshTbl *hsh_tbl, const char *file_path, ull (*hash_func)(const c
         }
     }
 
+    fclose(log_f);
+
     return SUCCESS;
 }
 
@@ -123,7 +129,8 @@ int WrdInTbl(HshTbl *hsh_tbl, const char *word)
 
     int wrd_flg = 0;
 
-    unsigned hash = hsh_tbl->hsh_fnc(word) % hsh_tbl->size;
+    unsigned int hash = hsh_tbl->hsh_fnc(word);
+    hash = hash % hsh_tbl->size;
 
     List *lst = hsh_tbl->lst_arr[hash];
     ERR_CHCK(lst            == NULL, -1);
@@ -134,7 +141,7 @@ int WrdInTbl(HshTbl *hsh_tbl, const char *word)
 
     for (int i = 0; i < lst->size; i++)
     {
-        if (strcmp(word, cur_nod->value) == 0)
+        if (asm_strcmp(word, cur_nod->value) == 0)
         {
             wrd_flg = 1;
             break;
@@ -185,10 +192,9 @@ int tblLstDump(HshTbl *hsh_tbl)
 
     for (unsigned i = 0; i < hsh_tbl->size; i++)
     {
-
         fprintf(log_f, "list[%d]", i);
 
-        LstNode *crr_nod = hsh_tbl->lst_arr[i]->fict_node;
+        Node *crr_nod = hsh_tbl->lst_arr[i]->fict_node;
         for (unsigned lst_i = 0; lst_i < hsh_tbl->lst_arr[i]->size; lst_i++)
         {
             crr_nod = crr_nod->next;
@@ -223,4 +229,47 @@ int tblCsvDump(HshTbl *hsh_tbl, const char *hash_f_name)
     fclose(log_f);
 
     return SUCCESS;
+}
+
+int inline asm_strcmp(const char* str1, const char* str2)
+{
+    int ret = 0;
+
+    __asm__
+    (
+        ".intel_syntax noprefix \n\t"
+
+        "mov rdi, %1            \n\t"
+        "mov rsi, %2            \n\t"
+
+        "xor eax, eax           \n\t"
+        "xor ebx, ebx           \n\t"
+
+        "_asm_strcmp_loop:      \n\t"
+        "mov al, byte ptr [rdi] \n\t"
+        "mov bl, byte ptr [rsi] \n\t"
+
+        "cmp al, 0              \n\t"
+        "je _asm_strcmp_end     \n\t"
+        "cmp bl, 0              \n\t"
+        "je _asm_strcmp_end     \n\t"
+
+        "cmp al, bl             \n\t"
+        "jne _asm_strcmp_end    \n\t"
+
+        "inc rdi                \n\t"
+        "inc rsi                \n\t"
+        "jmp _asm_strcmp_loop   \n\t"
+
+        "_asm_strcmp_end:       \n\t"
+    	"sub eax, ebx           \n\t"
+        "mov %0, eax\n\t"
+
+        ".att_syntax prefix\n\t"
+
+        : "=r" (ret) : "r" (str1), "r" (str2) 
+        : "rax", "rbx", "rdi", "rsi", "r8", "r9"
+    );
+
+    return ret;
 }

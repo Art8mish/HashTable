@@ -71,6 +71,7 @@ enum Errors
     ERR_TBL_CTOR          = 16,
     ERR_NO_LIST           = 17,
     ERR_NULL_FICT_NODE    = 18,
+    ERR_VEC_DATA          = 19,
 };
 
 enum HashFuncNums
@@ -90,10 +91,12 @@ typedef unsigned long long ull;
 
 typedef struct Data
 {
-          char *char_buf;
-    const char **wrd_buf;
-    unsigned wrd_amnt;
+    char *char_buf = NULL;
+    const char **wrd_buf = NULL;
+    unsigned wrd_amnt = 0;
+    bool vec = false;
 } Data;
+
 
 typedef struct HashTable
 {
@@ -109,6 +112,7 @@ typedef struct HashTable
 const int MAX_WORD_LEN = 10;
 
 struct Data *GetData(const char  *file_path);
+int VecData(Data *data, int vec_len);
 int ClnData(struct Data *data);
 
 HshTbl *tblCtor(const unsigned tbl_size);
@@ -117,7 +121,7 @@ int tblDtor(HshTbl *hsh_tbl);
 int tblLstDump(HshTbl *hsh_tbl);
 int tblCsvDump(HshTbl *hsh_tbl, const char *hash_f_name);
 
-int tblHashSort(HshTbl *hsh_tbl, const char *file_path, ull (*hash_func)(const char *));
+int tblHashSort(HshTbl *hsh_tbl, const char *file_path, ull (*hash_func)(const char *), bool vec_f);
 int tblAdd     (HshTbl *hsh_tbl, unsigned index, const char *str);
 int tblClean   (HshTbl **hsh_tbl);
 
@@ -130,7 +134,9 @@ ull hash_ror   (const char *word);
 ull hash_mrot  (const char *word);
 
 extern ull _asm_hash_addmul(const char *word);
+
 int inline asm_strcmp(const char* str1, const char* str2);
+int avx_strcmp(const char* str1, const char* str2);
 
 int WrdInTbl(HshTbl *hsh_tbl, const char *word);
 

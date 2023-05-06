@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <immintrin.h>
+
 typedef unsigned long long ull;
 
 static int HSH_CNST = 33;
@@ -67,6 +69,32 @@ int inline asm_strcmp(const char* str1, const char* str2)
     return ret;
 }
 
+int avx_strcmp(const char *str1, const char *str2)
+{
+    __m256i wrd1;
+    __m256i wrd2;
+    memcpy(&wrd1, str1, sizeof(__m256i));
+    memcpy(&wrd2, str2, sizeof(__m256i));
+
+    __m256i mask = _mm256_cmpeq_epi8(wrd1, wrd2);   //compare 8-bit integers
+
+    // __m256i _1 = _mm256_set1_epi8(0xFF);
+    // mask = _mm256_xor_si256(mask, _1);
+
+    wrd1 = _mm256_andnot_si256(mask, wrd1);         //wrd1[i] = !mask[i] & wrd1[i])
+    wrd2 = _mm256_andnot_si256(mask, wrd2);         //wrd1[i] = !mask[i] & wrd1[i])
+    
+    __m256i diff = _mm256_sub_epi8(wrd1, wrd2);
+
+    for (int i = 0; i < 32; i++)
+    {
+        if (((signed char *)&diff)[i])
+            return ((signed char *)&diff)[i];
+    }
+
+    return 0;
+}
+
 int main(int argc, char *argv[])
 {
     // unsigned int cmn_hash = hash_mrot("CRIME");
@@ -74,8 +102,8 @@ int main(int argc, char *argv[])
 
     // printf("cmn_hash: %u\nasm_hash: %u\n", cmn_hash % 1009, asm_hash % 1009);
 
-    int i1 = strcmp("sheeesh", "sheeesd");
-    int i2 = asm_strcmp("sheeesh", "sheeesd");
+    int i1 = strcmp("CRIME", "CRIME");
+    int i2 = avx_strcmp("CRIME", "CRIME");
 
     printf("i1: %d\ni2: %d\n", i1, i2);
     return 0;

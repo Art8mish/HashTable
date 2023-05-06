@@ -29,6 +29,7 @@ Data *GetData(const char *file_path)
     ERR_CHCK(io_env->wrd_buf == NULL, NULL);
 
     io_env->wrd_amnt = wrd_amnt;
+    io_env->vec = false;
 
     return io_env;
 }
@@ -89,10 +90,42 @@ unsigned CalcFileSize(const char *file_path)
     return size;
 }
 
+int VecData(Data *data, int vec_len)
+{
+    ERR_CHCK(data == NULL, ERROR_NULL_PTR);
+
+    if (data->vec)
+        return SUCCESS;
+
+    for (unsigned i = 0; i < data->wrd_amnt; i++)
+    {
+        int word_len = strlen(data->wrd_buf[i]) + 1; //+1 means last '\0'
+        int  ext_len = vec_len - (word_len % vec_len);
+
+        char *vec_word = (char *) calloc(word_len + ext_len, sizeof(char));
+        ERR_CHCK(vec_word == NULL, ERROR_CALLOC);
+
+        strcpy(vec_word, data->wrd_buf[i]);
+        for (int i_0 = 0; i_0 < ext_len; i_0++)
+            vec_word[word_len + i_0] = '\0';
+
+        data->wrd_buf[i] = (const char *)vec_word;
+    }
+
+    data->vec = true;
+    return SUCCESS;    
+}
+
 int ClnData(Data *data)
 {
     ERR_CHCK(data == NULL, ERROR_NULL_PTR);
 
+    if (data->vec)
+    {
+        for(unsigned i = 0; i < data->wrd_amnt; i++)
+            free((char *)data->wrd_buf[i]);
+    }
+    
     free(data->char_buf);
     free(data->wrd_buf);
     free(data);

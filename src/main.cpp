@@ -6,7 +6,7 @@
 const char *txt_f_path = "data_txt/crm_pnshmnt.txt";
 
 
-int main(int argc, char *argv[])
+int main(void)
 {
     HshTbl *hsh_tbl = tblCtor(1009);
     ERR_CHCK(hsh_tbl == NULL, 1);
@@ -32,19 +32,18 @@ int main(int argc, char *argv[])
     // printf("cmn_hash: %ld\n asm_hash: %ld\n", cmn_hash, asm_hash);
 
 
-    int err = tblHashSort(hsh_tbl, txt_f_path, _asm_hash_addmul);
+    int err = tblHashSort(hsh_tbl, txt_f_path, _asm_hash_addmul, true);
     ERR_CHCK(err, ERR_HASH_TBL_SORT);
 
-    err = tblLstDump(hsh_tbl);
-    ERR_CHCK(err, ERR_EXCEL_DUMP);
+    char word[32] = {"CRIME"};
 
     clock_t start_time = clock();
 
     int wrd_in_tbl = 0;
     int cyc_n = 0;
-    while(cyc_n < 10000000)
+    while(cyc_n < 100000000)
     {
-        wrd_in_tbl = WrdInTbl(hsh_tbl, "");
+        wrd_in_tbl = WrdInTbl(hsh_tbl, word);
         ERR_CHCK(wrd_in_tbl == -1, 1);
         cyc_n++;
     }

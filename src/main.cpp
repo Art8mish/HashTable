@@ -31,8 +31,8 @@ int main(void)
 
     // printf("cmn_hash: %ld\n asm_hash: %ld\n", cmn_hash, asm_hash);
 
-
-    int err = tblHashSort(hsh_tbl, txt_f_path, _asm_hash_addmul, true);
+    ull (*hash_funcs[2])(const char *) = {hash_mrot, _asm_hash_addmul};
+    int err = tblHashSort(hsh_tbl, txt_f_path, hash_funcs[0], true);
     ERR_CHCK(err, ERR_HASH_TBL_SORT);
 
     char word[32] = {"CRIME"};
@@ -48,8 +48,13 @@ int main(void)
         cyc_n++;
     }
 
+    FILE *log_f = fopen("logs/log.txt", "a");
+    ERR_CHCK(log_f == NULL, ERR_FILE_OPENING);
+
     clock_t end_time = clock();
     double elapsed_time = (double)(end_time - start_time) /CLOCKS_PER_SEC;
+
+    fprintf(log_f, "%d ()\n", elapsed_time, cyc_n);
 
     printf("Word was ");
     if (wrd_in_tbl)
@@ -58,6 +63,7 @@ int main(void)
         printf("not found ");
     printf("in %lf seconds (%d cycles)\n", elapsed_time, cyc_n);
 
+    fclose(log_f);
     tblDtor(hsh_tbl);
 
     return SUCCESS;

@@ -209,15 +209,15 @@ int tblCsvDump(HshTbl *hsh_tbl, const char *hash_f_name)
 
 int tblFindKey(HshTbl *hsh_tbl, void *word)
 {
-    //ERR_CHCK(hsh_tbl == NULL, -1);
-    //ERR_CHCK(word    == NULL, -1);
+    ERR_CHCK(hsh_tbl == NULL, -1);
+    ERR_CHCK(word    == NULL, -1);
 
     unsigned int hash = (unsigned int)hsh_tbl->hsh_fnc((const char *)word);
     hash = hash % hsh_tbl->size;
 
     List *lst = hsh_tbl->lst_arr[hash];
-    //ERR_CHCK(lst            == NULL, -1);
-    //ERR_CHCK(lst->fict_node == NULL, -1);
+    ERR_CHCK(lst            == NULL, -1);
+    ERR_CHCK(lst->fict_node == NULL, -1);
 
     Node *cur_nod = lst->fict_node->next;
     int wrd_flg = 0;
@@ -310,9 +310,6 @@ int inline asm_strcmp(const char* str1, const char* str2)
 int avx_strcmp(__m256i str1, __m256i str2)
 {
     __m256i mask = _mm256_cmpeq_epi8(str1, str2);   //compare 8-bit integers
-
-    // __m256i _1 = _mm256_set1_epi8(0xFF);
-    // mask = _mm256_xor_si256(mask, _1);
 
     str1 = _mm256_andnot_si256(mask, str1);         //wrd1[i] = !mask[i] & wrd1[i])
     str2 = _mm256_andnot_si256(mask, str2);         //wrd1[i] = !mask[i] & wrd1[i])

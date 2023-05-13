@@ -30,12 +30,10 @@ ____
 
 В данной работе будут исследованы 7 разных хеш-функций, их подбор обусловлен целью показать разные по качеству функции для сравнения. Дальше будут приведены названия функций и разбор их алгоритма подсчета хеша.
 
-> ull - сокращение от unsigned long long
-
 #### Константа
 
 ```C++
-ull hash_cnst(const char *word)
+unsigned long long hash_cnst(const char *word)
 {
     return 1;
 }
@@ -46,9 +44,9 @@ ull hash_cnst(const char *word)
 #### ASCII код первого символа
 
 ```C++
-ull hash_symb(const char *word)
+unsigned long long hash_symb(const char *word)
 {
-    ull hash = *word;
+    unsigned long long hash = *word;
 
     return hash;
 }
@@ -59,9 +57,9 @@ ull hash_symb(const char *word)
 #### Длина слова
 
 ```C++
-ull hash_strlen(const char *word)
+unsigned long long hash_strlen(const char *word)
 {
-    ull hash = strlen(word);
+    unsigned long long hash = strlen(word);
 
     return hash;
 }
@@ -72,9 +70,9 @@ ull hash_strlen(const char *word)
 #### Сумма ASCII кодов всех символов
 
 ```C++
-ull hash_ascii(const char *word)
+unsigned long long hash_ascii(const char *word)
 {
-    ull hash = 0;
+    unsigned long long hash = 0;
     while (*word != '\0')
     {
         hash += *word;
@@ -90,9 +88,9 @@ ull hash_ascii(const char *word)
 #### Rol
 
 ```C++
-ull hash_rol(const char *word)
+unsigned long long hash_rol(const char *word)
 {
-    ull hash = 0;
+    unsigned long long hash = 0;
     while (*word != '\0')
     {
         hash = rol1(hash) ^ (*word);
@@ -105,9 +103,9 @@ ull hash_rol(const char *word)
 Данная хеш-функция основана на ассемблерной команде `rol`, которая производит побитовый сдвиг влево с переносом старших разрядов на младшие (что-то вроде битового вращения). Реализация сдвига на 1 бит реализован cледующим образом:
 
 ```C++
-static ull rol1(ull num)
+static unsigned long long rol1(unsigned long long num)
 {
-    ull bit = num >> (sizeof(num) * 8 - 1);
+    unsigned long long bit = num >> (sizeof(num) * 8 - 1);
 
     return (num << 1) | bit;
 }
@@ -119,9 +117,9 @@ static ull rol1(ull num)
 #### Ror
 
 ```C++
-ull hash_ror(const char *word)
+unsigned long long hash_ror(const char *word)
 {
-    ull hash = 0;
+    unsigned long long hash = 0;
     while (*word != '\0')
     {
         hash = ror1(hash) ^ (*word);
@@ -135,9 +133,9 @@ ull hash_ror(const char *word)
 Хеш-функция ror отличается от предыдущей использованием команды `ror` вместо rol, побитовый сдвиг производится вправо. Реализация сдвига на 1 бит почти идентична rol:
 
 ```C++
-static ull ror1(ull num)
+static unsigned long long ror1(unsigned long long num)
 {
-    ull bit = num << (sizeof(num) * 8 - 1);
+    unsigned long long bit = num << (sizeof(num) * 8 - 1);
 
     return (num >> 1) | bit;
 }
@@ -149,9 +147,9 @@ static ull ror1(ull num)
 
 ```C++
 static int HSH_CNST = 33;
-ull hash_addmul(const char *word)
+unsigned long long hash_addmul(const char *word)
 {
-    ull hash = HSH_CNST;
+    unsigned long long hash = HSH_CNST;
 
     while (*word != '\0')
     {
@@ -471,9 +469,9 @@ if (_mm256_testc_si256(wrd1, wrd2))
 
 |  Флаг оптимизации   |  -O0  |  -O1  |  -O2  |
 |:-------------------:|:------|-------|------:|
-| Время исполнения, с | 0,270 | 0,173 | 0,168 |
-|   Абс. ускорение    | 1,893 | 1,481 | 1,590 |
-|   Отн. ускорение    | 1,190 | 1,003 | 1,041 |
+| Время исполнения, с | 0.270 | 0.173 | 0.168 |
+|   Абс. ускорение    | 1.893 | 1.481 | 1.590 |
+|   Отн. ускорение    | 1.190 | 1.003 | 1.041 |
 
 Из таблицы видно, что относительное ускорение в данном случае составило 1.190, что в больших проектах является довольно серьезным приростом производительности. Из этого можно сделать вывод, что нельзя забывать про отключение средств для дебага, они сильно замедляют исполнение программы (хорошим примером служит сам *valgrind*).
 

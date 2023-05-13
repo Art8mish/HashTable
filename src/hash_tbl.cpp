@@ -39,8 +39,8 @@ int tblDtor(HshTbl *hsh_tbl)
 
     if (hsh_tbl->data != NULL)
     {
-        int err = ClnData(hsh_tbl->data);
-        ERR_CHCK(err, ERR_DATA_CLEAN);
+        int err = dataDtor(hsh_tbl->data);
+        ERR_CHCK(err, ERR_DATA_CLEAN);        
     }
 
     if (hsh_tbl->lst_arr != NULL)
@@ -52,7 +52,7 @@ int tblDtor(HshTbl *hsh_tbl)
 }
 
 
-static int ChckWrdExst(List *lst, const char *word, bool *flag)
+static int tblChckWrd(List *lst, void *word, bool *flag)
 {
     ERR_CHCK(lst  == NULL, ERROR_NULL_PTR);
     ERR_CHCK(word == NULL, ERROR_NULL_PTR);
@@ -61,7 +61,7 @@ static int ChckWrdExst(List *lst, const char *word, bool *flag)
     Node *crr_nod = lst->fict_node->next;
     for (unsigned data_i = 0; data_i < lst->size; data_i++)
     {
-        if (strcmp(word, crr_nod->value) == 0)
+        if (strcmp((const char *)word, (const char *)crr_nod->value) == 0)
         {
             wrd_exst = true;
             break;
@@ -85,24 +85,24 @@ int tblHashSort(HshTbl *hsh_tbl, const char *file_path, ull (*hash_func)(const c
 
     hsh_tbl->hsh_fnc = hash_func;
 
-    Data *data = GetData(file_path);
+    Data *data = dataCtor(file_path);
     ERR_CHCK(data == NULL, ERR_CREATE_ONG_FIELD);
+
+    hsh_tbl->data = data;
 
     if (vec_f)
     {
-        int err = VecData(data, 32);
+        int err = dataVec32(data);
         ERR_CHCK(err, ERR_VEC_DATA);
+        printf("Data is vectorised...\n");
     }
-
-    hsh_tbl->data = data;
 
     FILE *log_f = fopen("logs/hash_info.txt", "a");
     ERR_CHCK(log_f == NULL, ERR_FILE_OPENING);
 
-
     for (unsigned wrd_i = 0; wrd_i < data->wrd_amnt; wrd_i++)
     {
-        unsigned int hash = (unsigned int)hash_func(data->wrd_buf[wrd_i]);
+        unsigned int hash = hash_func((const char *)data->wrd_buf[wrd_i]);
         //fprintf(log_f, "%s = %u; ", data->wrd_buf[wrd_i], hash);
 
         if (hash == ERR_CALC_HASH)
@@ -112,7 +112,7 @@ int tblHashSort(HshTbl *hsh_tbl, const char *file_path, ull (*hash_func)(const c
         hash = hash % hsh_tbl->size;
 
         bool wrd_exst = false;
-        int err = ChckWrdExst(HSH_LST, data->wrd_buf[wrd_i], &wrd_exst);
+        int err = tblChckWrd(HSH_LST, data->wrd_buf[wrd_i], &wrd_exst);
         ERR_CHCK(err, ERR_CHCK_WRD_EXST);
 
         if (!wrd_exst)
@@ -127,7 +127,7 @@ int tblHashSort(HshTbl *hsh_tbl, const char *file_path, ull (*hash_func)(const c
     return SUCCESS;
 }
 
-int tblAdd(HshTbl *hsh_tbl, unsigned index, const char *str)
+int tblAdd(HshTbl *hsh_tbl, unsigned index, void *str)
 {
     ERR_CHCK(hsh_tbl == NULL, ERROR_NULL_PTR);
     ERR_CHCK(index   >= hsh_tbl->size, ERR_OVERSIZE);
@@ -205,38 +205,43 @@ int tblCsvDump(HshTbl *hsh_tbl, const char *hash_f_name)
     return SUCCESS;
 }
 
-//#define AVX_MOD
+#define AVX_MOD
 
-int WrdInTbl(HshTbl *hsh_tbl, const char *word)
+int tblFindKey(HshTbl *hsh_tbl, void *word)
 {
-    ERR_CHCK(hsh_tbl == NULL, -1);
-    ERR_CHCK(word    == NULL, -1);
+    //ERR_CHCK(hsh_tbl == NULL, -1);
+    //ERR_CHCK(word    == NULL, -1);
 
-    unsigned int hash = (unsigned int)hsh_tbl->hsh_fnc(word);
+    unsigned int hash = (unsigned int)hsh_tbl->hsh_fnc((const char *)word);
     hash = hash % hsh_tbl->size;
 
     List *lst = hsh_tbl->lst_arr[hash];
-    ERR_CHCK(lst            == NULL, -1);
-    ERR_CHCK(lst->fict_node == NULL, -1);
+    //ERR_CHCK(lst            == NULL, -1);
+    //ERR_CHCK(lst->fict_node == NULL, -1);
 
     Node *cur_nod = lst->fict_node->next;
     int wrd_flg = 0;
+
+    #ifdef AVX_MOD
+
+    __m256i wrd1;
+    memcpy(&wrd1, word, sizeof(__m256i));
+
+    #endif
 
     for (unsigned i = 0; i < lst->size; i++)
     {
         #ifndef AVX_MOD
 
-        if (strcmp(word, cur_nod->value) == 0)
+        if (asm_strcmp((const char *)word, (const char *)cur_nod->value) == 0)
         {
             wrd_flg = 1;
             break;
         }
 
         #else
-
-        __m256i wrd1;
+        
         __m256i wrd2;
-        memcpy(&wrd1, word, sizeof(__m256i));
         memcpy(&wrd2, cur_nod->value, sizeof(__m256i));
 
         if (_mm256_testc_si256(wrd1, wrd2))
@@ -245,8 +250,7 @@ int WrdInTbl(HshTbl *hsh_tbl, const char *word)
             break;
         }
 
-        // if (_mm256_testc_si256(*((__m256i *)word), 
-        //                        *((__m256i *)cur_nod->value)))
+        // if (avx_strcmp(wrd1, wrd2) == 0)
         // {
         //     wrd_flg = 1;
         //     break;
@@ -303,25 +307,17 @@ int inline asm_strcmp(const char* str1, const char* str2)
     return ret;
 }
 
-int avx_strcmp(const char* str1, const char* str2)
+int avx_strcmp(__m256i str1, __m256i str2)
 {
-    ERR_CHCK(str1 == NULL, ERROR_NULL_PTR);
-    ERR_CHCK(str2 == NULL, ERROR_NULL_PTR);
-
-    __m256i wrd1;
-    __m256i wrd2;
-    memcpy(&wrd1, str1, sizeof(__m256i));
-    memcpy(&wrd2, str2, sizeof(__m256i));
-
-    __m256i mask = _mm256_cmpeq_epi8(wrd1, wrd2);   //compare 8-bit integers
+    __m256i mask = _mm256_cmpeq_epi8(str1, str2);   //compare 8-bit integers
 
     // __m256i _1 = _mm256_set1_epi8(0xFF);
     // mask = _mm256_xor_si256(mask, _1);
 
-    wrd1 = _mm256_andnot_si256(mask, wrd1);         //wrd1[i] = !mask[i] & wrd1[i])
-    wrd2 = _mm256_andnot_si256(mask, wrd2);         //wrd1[i] = !mask[i] & wrd1[i])
+    str1 = _mm256_andnot_si256(mask, str1);         //wrd1[i] = !mask[i] & wrd1[i])
+    str2 = _mm256_andnot_si256(mask, str2);         //wrd1[i] = !mask[i] & wrd1[i])
     
-    __m256i diff = _mm256_sub_epi8(wrd1, wrd2);
+    __m256i diff = _mm256_sub_epi8(str1, str2);
 
     for (int i = 0; i < 32; i++)
     {

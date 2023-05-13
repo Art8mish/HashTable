@@ -85,7 +85,7 @@ ull hash_ror(const char *word)
 }
  
 static int HSH_CNST = 33;
-ull hash_mrot(const char *word)
+ull hash_addmul(const char *word)
 {
     ERR_CHCK(word == NULL, ERR_CALC_HASH);
 

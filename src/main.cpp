@@ -8,7 +8,7 @@ const char *txt_f_path = "data_txt/crm_pnshmnt.txt";
 
 int main(void)
 {
-    HshTbl *hsh_tbl = tblCtor(1009);
+    HshTbl *hsh_tbl = tblCtor(3001);
     ERR_CHCK(hsh_tbl == NULL, 1);
 
     // ull (*hash_funcs[7])(const char *) = {hash_cnst, hash_symb, hash_strlen, hash_ascii, hash_rol, hash_ror, hash_mrot};
@@ -31,30 +31,34 @@ int main(void)
 
     // printf("cmn_hash: %ld\n asm_hash: %ld\n", cmn_hash, asm_hash);
 
-    ull (*hash_funcs[2])(const char *) = {hash_mrot, _asm_hash_addmul};
-    int err = tblHashSort(hsh_tbl, txt_f_path, hash_funcs[0], true);
+    ull (*hash_funcs[2])(const char *) = {hash_addmul, _asm_hash_addmul};
+    int err = tblHashSort(hsh_tbl, txt_f_path, hash_funcs[1], true);
     ERR_CHCK(err, ERR_HASH_TBL_SORT);
 
-    char word[32] = {"CRIME"};
+    char word1[32] = {"CRIME"};
+    char word2[32] = {"Raskolnikov"};
+    char word3[32] = {"underground"};
+
+    char word[] = "Raskolnikov";
 
     clock_t start_time = clock();
 
     int wrd_in_tbl = 0;
     int cyc_n = 0;
-    while(cyc_n < 100000000)
+    while(cyc_n < 10000000)
     {
-        wrd_in_tbl = WrdInTbl(hsh_tbl, word);
-        ERR_CHCK(wrd_in_tbl == -1, 1);
+        wrd_in_tbl = tblFindKey(hsh_tbl, word2);
+        //ERR_CHCK(wrd_in_tbl == -1, 1);
         cyc_n++;
     }
+
+    clock_t end_time = clock();
+    double elapsed_time = (double)(end_time - start_time) / CLOCKS_PER_SEC;
 
     FILE *log_f = fopen("logs/log.txt", "a");
     ERR_CHCK(log_f == NULL, ERR_FILE_OPENING);
 
-    clock_t end_time = clock();
-    double elapsed_time = (double)(end_time - start_time) /CLOCKS_PER_SEC;
-
-    fprintf(log_f, "%d ()\n", elapsed_time, cyc_n);
+    fprintf(log_f, "%lf\n", elapsed_time);
 
     printf("Word was ");
     if (wrd_in_tbl)
@@ -64,7 +68,8 @@ int main(void)
     printf("in %lf seconds (%d cycles)\n", elapsed_time, cyc_n);
 
     fclose(log_f);
-    tblDtor(hsh_tbl);
+    err = tblDtor(hsh_tbl);
+    ERR_CHCK(err, ERR_TBL_DTOR);
 
     return SUCCESS;
 }

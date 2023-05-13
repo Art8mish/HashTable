@@ -72,6 +72,8 @@ enum Errors
     ERR_NO_LIST           = 17,
     ERR_NULL_FICT_NODE    = 18,
     ERR_VEC_DATA          = 19,
+    ERR_TBL_DTOR          = 20,
+    ERR_BIG_STR           =21
 };
 
 enum HashFuncNums
@@ -92,10 +94,17 @@ typedef unsigned long long ull;
 typedef struct Data
 {
     char *char_buf = NULL;
-    const char **wrd_buf = NULL;
+    void **wrd_buf = NULL;
     unsigned wrd_amnt = 0;
-    bool vec = false;
+    bool vec32 = false;
 } Data;
+
+// typedef struct _Data256i
+// {
+//     char *char_buf = NULL;
+//     const __m256i **wrd_buf = NULL;
+//     unsigned wrd_amnt = 0;
+// } D256i;
 
 
 typedef struct HashTable
@@ -108,22 +117,23 @@ typedef struct HashTable
 } HshTbl;
 
 
-
 const int MAX_WORD_LEN = 10;
 
-struct Data *GetData(const char  *file_path);
-int VecData(Data *data, int vec_len);
-int ClnData(struct Data *data);
+Data *dataCtor(const char  *file_path);
+int   dataVec32(Data *data);
+int   dataDtor (Data *data);
 
 HshTbl *tblCtor(const unsigned tbl_size);
-int tblDtor(HshTbl *hsh_tbl);
+int     tblDtor(HshTbl *hsh_tbl);
 
 int tblLstDump(HshTbl *hsh_tbl);
 int tblCsvDump(HshTbl *hsh_tbl, const char *hash_f_name);
 
 int tblHashSort(HshTbl *hsh_tbl, const char *file_path, ull (*hash_func)(const char *), bool vec_f);
-int tblAdd     (HshTbl *hsh_tbl, unsigned index, const char *str);
+int tblAdd     (HshTbl *hsh_tbl, unsigned index, void *str);
 int tblClean   (HshTbl **hsh_tbl);
+
+int tblFindKey(HshTbl *hsh_tbl, void *word);
 
 ull hash_cnst  (const char *word);
 ull hash_symb  (const char *word);
@@ -131,13 +141,11 @@ ull hash_strlen(const char *word);
 ull hash_ascii (const char *word);
 ull hash_rol   (const char *word);
 ull hash_ror   (const char *word);
-ull hash_mrot  (const char *word);
+ull hash_addmul(const char *word);
 
 extern ull _asm_hash_addmul(const char *word);
 
 int inline asm_strcmp(const char* str1, const char* str2);
-int avx_strcmp(const char* str1, const char* str2);
-
-int WrdInTbl(HshTbl *hsh_tbl, const char *word);
+int avx_strcmp(__m256i str1, __m256i str2);
 
 #endif //HASHTBL_H_INCLUDED

@@ -1,11 +1,11 @@
 
 #include "../include/hash_table.h"
 
-static int ReadFileData(const char *file_path,    char *char_buf, 
-                        unsigned char_amnt, const char **wrd_buf);
+static unsigned ReadFileData(const char *file_path, char *char_buf, 
+                             unsigned    char_amnt, void **wrd_buf);
 static unsigned CalcFileSize(const char *file_path);
 
-Data *GetData(const char *file_path)
+Data *dataCtor(const char *file_path)
 {
     ERR_CHCK(file_path == NULL, NULL);
 
@@ -18,23 +18,23 @@ Data *GetData(const char *file_path)
     io_env->char_buf = (char*) calloc(size, sizeof(char));
     ERR_CHCK(io_env->char_buf == NULL, NULL);
 
-    io_env->wrd_buf  = (const char **) calloc(size, sizeof(const char*));
+    io_env->wrd_buf  = (void **) calloc(size, sizeof(void*));
     ERR_CHCK(io_env->wrd_buf == NULL, NULL);
     
 
     unsigned wrd_amnt = ReadFileData(file_path, io_env->char_buf, size, io_env->wrd_buf);
     ERR_CHCK(wrd_amnt == 0, NULL);
 
-    io_env->wrd_buf = (const char **) realloc(io_env->wrd_buf, wrd_amnt * sizeof(const char*));
+    io_env->wrd_buf = (void **) realloc(io_env->wrd_buf, wrd_amnt * sizeof(void*));
     ERR_CHCK(io_env->wrd_buf == NULL, NULL);
 
     io_env->wrd_amnt = wrd_amnt;
-    io_env->vec = false;
+    io_env->vec32 = false;
 
     return io_env;
 }
 
-int ReadFileData(const char *file_path, char *char_buf, unsigned char_amnt, const char **wrd_buf)
+unsigned ReadFileData(const char *file_path, char *char_buf, unsigned char_amnt, void **wrd_buf)
 {
     ERR_CHCK(file_path == NULL, 0);
     ERR_CHCK(char_buf  == NULL, 0);
@@ -47,7 +47,7 @@ int ReadFileData(const char *file_path, char *char_buf, unsigned char_amnt, cons
 
     fclose(input_file);
 
-    int words_count = 0;
+    unsigned words_count = 0;
     bool empt_wrd   = true;
 
     for (unsigned i = 0; i < char_amnt; i++)
@@ -90,40 +90,76 @@ unsigned CalcFileSize(const char *file_path)
     return size;
 }
 
-int VecData(Data *data, int vec_len)
+int dataVec32(Data *data)
 {
     ERR_CHCK(data == NULL, ERROR_NULL_PTR);
+    
+    int vec_len = sizeof(__m256i);
 
-    if (data->vec)
+    if (data->vec32)
         return SUCCESS;
 
     for (unsigned i = 0; i < data->wrd_amnt; i++)
     {
-        int word_len = strlen(data->wrd_buf[i]) + 1; //+1 means last '\0'
-        int  ext_len = vec_len - (word_len % vec_len);
+        unsigned word_len = strlen((const char *)data->wrd_buf[i]) + 1; //+1 means last '\0'
+        ERR_CHCK(word_len > sizeof(__m256i), ERR_BIG_STR);
+        unsigned  ext_len = vec_len - (word_len % vec_len);
 
-        char *vec_word = (char *) calloc(word_len + ext_len, sizeof(char));
+        char vec_word[vec_len] = {};
         ERR_CHCK(vec_word == NULL, ERROR_CALLOC);
 
-        strcpy(vec_word, data->wrd_buf[i]);
-        for (int i_0 = 0; i_0 < ext_len; i_0++)
+        strcpy(vec_word, (const char *)data->wrd_buf[i]);
+        for (unsigned i_0 = 0; i_0 < ext_len; i_0++)
             vec_word[word_len + i_0] = '\0';
 
-        data->wrd_buf[i] = (const char *)vec_word;
+        __m256i *m256i_word = (__m256i *) calloc(1, sizeof(__m256i));
+        ERR_CHCK(m256i_word == NULL, ERROR_CALLOC);
+        
+        memcpy(m256i_word, vec_word, sizeof(__m256i));
+
+        data->wrd_buf[i] = m256i_word;
     }
 
-    data->vec = true;
+    data->vec32 = true;
     return SUCCESS;    
 }
 
-int ClnData(Data *data)
+// D256i *VecData256i(Data *data)
+// {
+//     ERR_CHCK(data == NULL, NULL);
+
+//     if (!data->vec)
+//         return NULL;
+
+//     D256i *m256i_data = (D256i *) calloc(1, sizeof(D256i));
+//     ERR_CHCK(data == NULL, NULL);
+
+//     for (unsigned i = 0; i < data->wrd_amnt; i++)
+//     {
+//         int word_len = strlen(data->wrd_buf[i]) + 1; //+1 means last '\0'
+//         ERR_CHCK(word_len > sizeof(__m256i), NULL);
+
+//         __m256i *m256i_word = (__m256i *) calloc(1, sizeof(__m256i));
+//         ERR_CHCK(m256i_word == NULL, NULL);
+
+//         memcpy(m256i_word, data->wrd_buf[i], sizeof(__m256i));
+//         m256i_data->wrd_buf[i] = m256i_word;
+//     }
+
+//     int err = ClnData(data);
+//     ERR_CHCK(err, NULL);
+
+//     return m256i_data;    
+// }
+
+int dataDtor(Data *data)
 {
     ERR_CHCK(data == NULL, ERROR_NULL_PTR);
 
-    if (data->vec)
+    if (data->vec32)
     {
         for(unsigned i = 0; i < data->wrd_amnt; i++)
-            free((char *)data->wrd_buf[i]);
+            free((__m256i *)data->wrd_buf[i]);
     }
     
     free(data->char_buf);

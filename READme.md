@@ -479,7 +479,7 @@ if (_mm256_testc_si256(wrd1, wrd2))
 <details>   
 <summary> Итоговые результаты профилирования </summary><br><b>
 
-<img src="/imgs/callgrind_final.png" style="height: 220px;"/>
+<img src="/imgs/callgrind_final.png" style="height: 140px;"/>
 
 </b></details>
 

@@ -223,6 +223,8 @@ ull hash_addmul(const char *word)
 
 Стоит отметить, что значения мат. ожидания и дисперсии у хеш-функции *hash_addmul* ближе всего к требуемым.
 
+> P.S. Все графики были построены с помощью `matplotlib`.
+
 ## Часть 2. Оптимизация алгоритма поиска ключа
 
 ### Цель и методика
@@ -483,7 +485,7 @@ if (_mm256_testc_si256(wrd1, wrd2))
 
 </b></details>
 
-Все результаты профилирований можно посмотреть самому, в папке `.callgrind` хранятся все исходные файлы с данными. Для того что бы просмотреть информацию нужно прописать в консоль 
+Все результаты профилирований можно посмотреть самому, в папке `.callgrind` хранятся все исходные файлы с данными. Для того что бы просмотреть информацию нужно прописать в консоль
 `callgrind_annotate callgrind.out.NUM`, где NUM - индивидуальный номер файла.
 
 | Стадия оптимизации |  Без оптимизаций  |  asm_hash  |  asm_strcmp  | avx_strcmp | SIMD | Итог |
@@ -514,6 +516,9 @@ if (_mm256_testc_si256(wrd1, wrd2))
 4. Ссылки на связанные работы:
     - https://github.com/Art8mish/List
     - https://github.com/Art8mish/SIMD
+
+5. Построение графиков (matplotlip)
+    - https://www.geeksforgeeks.org/bar-plot-in-matplotlib/
 
 Литература:
 - Randal E. Bryant and David R. O'Hallaron "Computer Systems: A Programmer's Perspective"

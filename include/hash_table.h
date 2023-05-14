@@ -88,9 +88,6 @@ enum HashFuncNums
 };
 
 
-typedef unsigned long ul;
-typedef unsigned long long ull;
-
 typedef struct Data
 {
     char *char_buf = NULL;
@@ -112,7 +109,7 @@ typedef struct HashTable
     Data *data;
     List **lst_arr;
     unsigned size;
-    ull (*hsh_fnc)(const char *);
+    uint64_t (*hsh_fnc)(const char *);
 
 } HshTbl;
 
@@ -129,21 +126,21 @@ int     tblDtor(HshTbl *hsh_tbl);
 int tblLstDump(HshTbl *hsh_tbl);
 int tblCsvDump(HshTbl *hsh_tbl, const char *hash_f_name);
 
-int tblHashSort(HshTbl *hsh_tbl, const char *file_path, ull (*hash_func)(const char *), bool vec_f);
+int tblHashSort(HshTbl *hsh_tbl, const char *file_path, uint64_t (*hash_func)(const char *), bool vec_f);
 int tblAdd     (HshTbl *hsh_tbl, unsigned index, void *str);
 int tblClean   (HshTbl **hsh_tbl);
 
 int tblFindKey(HshTbl *hsh_tbl, void *word);
 
-ull hash_cnst  (const char *word);
-ull hash_symb  (const char *word);
-ull hash_strlen(const char *word);
-ull hash_ascii (const char *word);
-ull hash_rol   (const char *word);
-ull hash_ror   (const char *word);
-ull hash_addmul(const char *word);
+uint64_t hash_cnst  (const char *word);
+uint64_t hash_symb  (const char *word);
+uint64_t hash_strlen(const char *word);
+uint64_t hash_ascii (const char *word);
+uint64_t hash_rol   (const char *word);
+uint64_t hash_ror   (const char *word);
+uint64_t hash_addmul(const char *word);
 
-extern ull _asm_hash_addmul(const char *word);
+extern uint64_t _asm_hash_addmul(const char *word);
 
 int inline asm_strcmp(const char* str1, const char* str2);
 int avx_strcmp(__m256i str1, __m256i str2);

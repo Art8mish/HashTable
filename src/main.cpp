@@ -11,7 +11,7 @@ int main(void)
     HshTbl *hsh_tbl = tblCtor(3001);
     ERR_CHCK(hsh_tbl == NULL, 1);
 
-    // ull (*hash_funcs[7])(const char *) = {hash_cnst, hash_symb, hash_strlen, hash_ascii, hash_rol, hash_ror, hash_mrot};
+    // uint64_t (*hash_funcs[7])(const char *) = {hash_cnst, hash_symb, hash_strlen, hash_ascii, hash_rol, hash_ror, hash_mrot};
     // const char *hash_f_names[7] = {"hash_cnst", "hash_symb", "hash_strlen", "hash_ascii", "hash_rol", "hash_ror", "hash_mrot"};
 
     // for (int f_i = 0; f_i < 7; f_i++)
@@ -26,12 +26,12 @@ int main(void)
     //     ERR_CHCK(err, ERR_HASH_TBL_CLEAN);
     // }
 
-    // ull cmn_hash = hash_mrot("hash_mrot");
-    // ull asm_hash = _asm_hash_addmul("hash_mrot");
+    // uint64_t cmn_hash = hash_mrot("hash_mrot");
+    // uint64_t asm_hash = _asm_hash_addmul("hash_mrot");
 
     // printf("cmn_hash: %ld\n asm_hash: %ld\n", cmn_hash, asm_hash);
 
-    ull (*hash_funcs[2])(const char *) = {hash_addmul, _asm_hash_addmul};
+    uint64_t (*hash_funcs[2])(const char *) = {hash_addmul, _asm_hash_addmul};
     int err = tblHashSort(hsh_tbl, txt_f_path, hash_funcs[1], true);
     ERR_CHCK(err, ERR_HASH_TBL_SORT);
 

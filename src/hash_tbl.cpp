@@ -77,7 +77,7 @@ static int tblChckWrd(List *lst, void *word, bool *flag)
 
 #define HSH_LST hsh_tbl->lst_arr[hash]
 
-int tblHashSort(HshTbl *hsh_tbl, const char *file_path, ull (*hash_func)(const char *), bool vec_f)
+int tblHashSort(HshTbl *hsh_tbl, const char *file_path, uint64_t (*hash_func)(const char *), bool vec_f)
 {
     ERR_CHCK(hsh_tbl   == NULL, ERROR_NULL_PTR);
     ERR_CHCK(file_path == NULL, ERROR_NULL_PTR);
